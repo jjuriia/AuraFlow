@@ -1,0 +1,22 @@
+# Gradle / Android Studio
+.gradle/
+build/
+/app/build/
+/app/release/
+local.properties
+.idea/
+*.iml
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Ключи подписи
+*.jks
+*.keystore
+
+# Материалы курса и черновики Word (в репозиторий не выкладываются)
+*.pdf
+*.docx
+~$*
+docs/reports/
