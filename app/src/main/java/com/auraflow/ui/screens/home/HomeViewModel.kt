@@ -34,6 +34,7 @@ data class HomeUiState(
     val today: PlanDay? = null,
     val completedDays: Set<Int> = emptySet(),
     val planCompleted: Boolean = false,
+    val todayDone: Boolean = false,
     val quote: Quote? = null
 )
 
@@ -49,15 +50,17 @@ class HomeViewModel(
         val zone = clock.zone
         val stats = StatsCalculator.stats(list, LocalDate.now(clock), zone)
         val completed = StatsCalculator.completedPlanDays(list, profile.planStartEpochDay, zone)
+        val doneToday = StatsCalculator.planDayDoneOn(LocalDate.now(clock), list, profile.planStartEpochDay, zone)
         HomeUiState(
             loading = false,
             name = profile.name,
             greeting = greeting(LocalTime.now(clock)),
             stats = stats,
             spirit = StatsCalculator.spirit(stats),
-            today = PlanGenerator.day(profile.answers, PlanGenerator.nextDay(completed)),
+            today = PlanGenerator.day(profile.answers, PlanGenerator.today(completed, doneToday)),
             completedDays = completed,
             planCompleted = PlanGenerator.isCompleted(completed),
+            todayDone = doneToday != null,
             quote = q
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())

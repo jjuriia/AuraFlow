@@ -112,7 +112,8 @@ fun ProfileScreen(viewModel: ProfileViewModel = viewModel(factory = ProfileViewM
                 PatternThumbnail(session.pattern, Modifier.fillMaxWidth())
                 Text(formatDate(session.startedAt), style = MaterialTheme.typography.labelMedium)
                 Text(
-                    "${formatDuration(session.durationSec)} · ${MOOD_LABELS[session.moodBefore - 1]} → ${MOOD_LABELS[session.moodAfter - 1]}",
+                    "${formatDuration(session.durationSec)}${if (session.completed) "" else " · прервана"} · " +
+                        "${MOOD_LABELS[session.moodBefore - 1]} → ${MOOD_LABELS[session.moodAfter - 1]}",
                     style = MaterialTheme.typography.labelSmall,
                     color = TextMuted
                 )
@@ -191,7 +192,7 @@ private fun SessionDialog(session: Session, onDismiss: () -> Unit) {
                     style = MaterialTheme.typography.labelLarge,
                     color = NeonCyan
                 )
-                Text("Длительность: ${formatDuration(session.durationSec)}")
+                Text("Длительность: ${formatDuration(session.durationSec)}" + if (session.completed) "" else " (прервана)")
                 Text("Возвращений внимания: ${session.attentionReturns}")
                 Text("Настроение: ${MOOD_LABELS[session.moodBefore - 1]} → ${MOOD_LABELS[session.moodAfter - 1]}")
                 Text(

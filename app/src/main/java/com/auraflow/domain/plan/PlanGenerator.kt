@@ -51,6 +51,8 @@ object PlanGenerator {
         breath = BreathPattern(4, 6)
     )
 
+    fun today(completed: Set<Int>, doneToday: Int?): Int = doneToday ?: nextDay(completed)
+
     fun nextDay(completed: Set<Int>): Int = (1..PLAN_DAYS).firstOrNull { it !in completed } ?: PLAN_DAYS
 
     fun isCompleted(completed: Set<Int>): Boolean = (1..PLAN_DAYS).all { it in completed }

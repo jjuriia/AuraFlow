@@ -78,7 +78,7 @@ fun PracticeScreen(
             )
             PracticePhase.PRACTICE -> PracticeContent(state, plan, viewModel)
             PracticePhase.MOOD_AFTER -> MoodStep(
-                header = "Сессия завершена · ${formatDuration(state.durationSec)}",
+                header = if (state.completed) "Сессия завершена · ${formatDuration(state.durationSec)}" else "Практика прервана · ${formatDuration(state.durationSec)}",
                 title = "Как вы теперь?",
                 subtitle = "Сравните с ощущением до практики. Любой ответ — нормальный.",
                 value = state.moodAfter,
@@ -256,8 +256,17 @@ private fun SummaryContent(state: PracticeUiState, viewModel: PracticeViewModel,
     ) {
         Text("Узор вашей сессии", style = MaterialTheme.typography.headlineMedium)
         Text("Сохранён в галерею личного кабинета", style = MaterialTheme.typography.bodyMedium, color = TextMuted)
+        if (!state.completed) {
+            Text(
+                "Практика прервана раньше 80 % — засчитаны только минуты, без бонуса за завершение" +
+                    if (state.plan?.day ?: 0 > 0) " и без отметки дня плана." else ".",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMuted,
+                textAlign = TextAlign.Center
+            )
+        }
         Text(
-            "Дух-хранитель получил +${StatsCalculator.pointsFor(state.durationSec)} света",
+            "Дух-хранитель получил +${StatsCalculator.pointsFor(state.durationSec, state.completed)} света",
             style = MaterialTheme.typography.labelLarge,
             color = NeonCyan
         )

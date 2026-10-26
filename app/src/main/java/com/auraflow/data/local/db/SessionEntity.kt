@@ -17,7 +17,8 @@ data class SessionEntity(
     @ColumnInfo(name = "mood_after") val moodAfter: Int,
     @ColumnInfo(name = "pattern_n") val patternN: Int,
     @ColumnInfo(name = "pattern_m") val patternM: Int,
-    @ColumnInfo(name = "pattern_seed") val patternSeed: Long
+    @ColumnInfo(name = "pattern_seed") val patternSeed: Long,
+    @ColumnInfo(name = "completed", defaultValue = "1") val completed: Boolean = true
 )
 
 fun SessionEntity.toDomain() = Session(
@@ -28,7 +29,8 @@ fun SessionEntity.toDomain() = Session(
     attentionReturns = attentionReturns,
     moodBefore = moodBefore,
     moodAfter = moodAfter,
-    pattern = ChladniPattern(patternN, patternM, patternSeed)
+    pattern = ChladniPattern(patternN, patternM, patternSeed),
+    completed = completed
 )
 
 fun Session.toEntity() = SessionEntity(
@@ -41,5 +43,6 @@ fun Session.toEntity() = SessionEntity(
     moodAfter = moodAfter,
     patternN = pattern.n,
     patternM = pattern.m,
-    patternSeed = pattern.seed
+    patternSeed = pattern.seed,
+    completed = completed
 )

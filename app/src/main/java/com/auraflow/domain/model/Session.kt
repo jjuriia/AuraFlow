@@ -6,6 +6,10 @@ data class ChladniPattern(
     val seed: Long
 )
 
+const val COMPLETION_SHARE = 0.8
+
+fun isCompleted(durationSec: Int, plannedSec: Int): Boolean = durationSec >= plannedSec * COMPLETION_SHARE
+
 data class Session(
     val id: Long = 0,
     val startedAt: Long,
@@ -14,5 +18,6 @@ data class Session(
     val attentionReturns: Int,
     val moodBefore: Int,
     val moodAfter: Int,
-    val pattern: ChladniPattern
+    val pattern: ChladniPattern,
+    val completed: Boolean = true
 )

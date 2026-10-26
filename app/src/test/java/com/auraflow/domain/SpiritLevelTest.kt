@@ -9,7 +9,7 @@ import org.junit.Test
 
 class SpiritLevelTest {
 
-    private fun stats(sessions: Int, minutes: Int, days: Int = 1) = PracticeStats(sessions, minutes, days, null, 0)
+    private fun stats(sessions: Int, minutes: Int, days: Int = 1) = PracticeStats(sessions, sessions, minutes, days, null, 0)
 
     @Test
     fun everySessionMovesSpiritForward() {

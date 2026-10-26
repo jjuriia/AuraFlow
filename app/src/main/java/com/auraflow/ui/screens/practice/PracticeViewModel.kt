@@ -16,6 +16,7 @@ import com.auraflow.domain.chladni.ChladniField
 import com.auraflow.domain.chladni.PlateEngine
 import com.auraflow.domain.model.ChladniPattern
 import com.auraflow.domain.model.Session
+import com.auraflow.domain.model.isCompleted
 import com.auraflow.domain.plan.BreathPattern
 import com.auraflow.domain.plan.PlanDay
 import com.auraflow.domain.plan.PlanGenerator
@@ -49,6 +50,7 @@ data class PracticeUiState(
     val attentionReturns: Int = 0,
     val bowlStrikes: Int = 0,
     val durationSec: Int = 0,
+    val completed: Boolean = false,
     val finalPattern: ChladniPattern? = null
 ) {
     val stage: StageSpec? get() = plan?.stages?.getOrNull(stageIndex)
@@ -144,7 +146,8 @@ class PracticeViewModel(
                     attentionReturns = s.attentionReturns,
                     moodBefore = s.moodBefore,
                     moodAfter = s.moodAfter,
-                    pattern = pattern
+                    pattern = pattern,
+                    completed = s.completed
                 )
             )
         }
@@ -198,7 +201,8 @@ class PracticeViewModel(
         if (_state.value.phase != PracticePhase.PRACTICE) return
         narrator.stop()
         val duration = ((System.nanoTime() - startedAtNanos) / 1_000_000_000L).toInt()
-        _state.update { it.copy(phase = PracticePhase.MOOD_AFTER, durationSec = duration, breath = null, cue = "") }
+        val completed = isCompleted(duration, _state.value.plan?.totalSeconds ?: 0)
+        _state.update { it.copy(phase = PracticePhase.MOOD_AFTER, durationSec = duration, completed = completed, breath = null, cue = "") }
     }
 
     private fun showCue(text: String) {

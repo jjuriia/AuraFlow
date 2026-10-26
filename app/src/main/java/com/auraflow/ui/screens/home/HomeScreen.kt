@@ -69,7 +69,7 @@ fun HomeScreen(
         }
 
         state.today?.let { day ->
-            TodayCard(day, state.completedDays, state.planCompleted, onStart = { onStartPractice(day.day) })
+            TodayCard(day, state.completedDays, state.planCompleted, state.todayDone, onStart = { onStartPractice(day.day) })
         }
 
         OutlinedButton(onClick = { onStartPractice(0) }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
@@ -117,11 +117,15 @@ private fun SpiritLevel(spirit: SpiritState, daysThisWeek: Int) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TodayCard(day: PlanDay, completed: Set<Int>, planCompleted: Boolean, onStart: () -> Unit) {
+private fun TodayCard(day: PlanDay, completed: Set<Int>, planCompleted: Boolean, todayDone: Boolean, onStart: () -> Unit) {
     GlassCard(Modifier.fillMaxWidth(), highlighted = true) {
         PlanDots(completed, current = day.day)
         Text(
-            if (planCompleted) "План пройден — можно повторить заключительный день" else "День ${day.day} из ${PlanGenerator.PLAN_DAYS}",
+            when {
+                planCompleted -> "План пройден — можно повторить заключительный день"
+                todayDone -> "День ${day.day} из ${PlanGenerator.PLAN_DAYS} выполнен · следующий откроется завтра"
+                else -> "День ${day.day} из ${PlanGenerator.PLAN_DAYS}"
+            },
             style = MaterialTheme.typography.labelLarge,
             color = NeonCyan
         )
@@ -131,7 +135,7 @@ private fun TodayCard(day: PlanDay, completed: Set<Int>, planCompleted: Boolean,
             for (spec in day.stages) StageChip("${spec.stage.title} · ${(spec.seconds + 30) / 60} мин")
         }
         Button(onClick = onStart, modifier = Modifier.fillMaxWidth().height(52.dp).padding(top = 4.dp)) {
-            Text("Начать практику · ${day.minutes} мин")
+            Text(if (todayDone) "Повторить практику · ${day.minutes} мин" else "Начать практику · ${day.minutes} мин")
         }
     }
 }

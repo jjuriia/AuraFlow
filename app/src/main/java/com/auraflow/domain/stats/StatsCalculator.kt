@@ -7,13 +7,14 @@ import java.time.ZoneId
 
 data class PracticeStats(
     val totalSessions: Int,
+    val completedSessions: Int,
     val totalMinutes: Int,
     val daysThisWeek: Int,
     val averageMoodDelta: Double?,
     val totalReturns: Int
 ) {
     companion object {
-        val EMPTY = PracticeStats(0, 0, 0, null, 0)
+        val EMPTY = PracticeStats(0, 0, 0, 0, null, 0)
     }
 }
 
@@ -40,6 +41,7 @@ object StatsCalculator {
             .toSet()
         return PracticeStats(
             totalSessions = sessions.size,
+            completedSessions = sessions.count { it.completed },
             totalMinutes = sessions.sumOf { it.durationSec } / 60,
             daysThisWeek = days.size,
             averageMoodDelta = sessions.takeIf { it.isNotEmpty() }?.map { (it.moodAfter - it.moodBefore).toDouble() }?.average(),
@@ -48,10 +50,13 @@ object StatsCalculator {
     }
 
     fun completedPlanDays(sessions: List<Session>, planStartEpochDay: Long, zone: ZoneId): Set<Int> =
-        sessions
-            .filter { it.planDay != null && dateOf(it, zone).toEpochDay() >= planStartEpochDay }
-            .mapNotNull { it.planDay }
-            .toSet()
+        planSessions(sessions, planStartEpochDay, zone).mapNotNull { it.planDay }.toSet()
+
+    fun planDayDoneOn(date: LocalDate, sessions: List<Session>, planStartEpochDay: Long, zone: ZoneId): Int? =
+        planSessions(sessions, planStartEpochDay, zone).filter { dateOf(it, zone) == date }.maxOfOrNull { it.planDay!! }
+
+    private fun planSessions(sessions: List<Session>, planStartEpochDay: Long, zone: ZoneId) =
+        sessions.filter { it.completed && it.planDay != null && dateOf(it, zone).toEpochDay() >= planStartEpochDay }
 
     val LEVELS = listOf(
         0 to "Искра",
@@ -68,9 +73,9 @@ object StatsCalculator {
 
     const val POINTS_PER_SESSION = 10
 
-    fun points(stats: PracticeStats): Int = stats.totalSessions * POINTS_PER_SESSION + stats.totalMinutes
+    fun points(stats: PracticeStats): Int = stats.completedSessions * POINTS_PER_SESSION + stats.totalMinutes
 
-    fun pointsFor(durationSec: Int): Int = POINTS_PER_SESSION + durationSec / 60
+    fun pointsFor(durationSec: Int, completed: Boolean): Int = (if (completed) POINTS_PER_SESSION else 0) + durationSec / 60
 
     fun spirit(stats: PracticeStats): SpiritState {
         val points = points(stats)
@@ -86,7 +91,7 @@ object StatsCalculator {
             nextLevelName = next?.second,
             brightness = 0.3f + 0.7f * stats.daysThisWeek / 7f,
             petals = 3 + index,
-            particles = (6 + stats.totalSessions * 2).coerceAtMost(60),
+            particles = (6 + stats.completedSessions * 2).coerceAtMost(60),
             growth = ((index + progress) / (LEVELS.size - 1)).coerceAtMost(1f),
             title = when (stats.daysThisWeek) {
                 0 -> "Дух дремлет"
