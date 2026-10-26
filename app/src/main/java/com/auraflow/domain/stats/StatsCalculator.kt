@@ -8,9 +8,7 @@ import java.time.ZoneId
 data class PracticeStats(
     val totalSessions: Int,
     val totalMinutes: Int,
-
     val daysThisWeek: Int,
-
     val averageMoodDelta: Double?,
     val totalReturns: Int
 ) {
@@ -20,6 +18,12 @@ data class PracticeStats(
 }
 
 data class SpiritState(
+    val level: Int,
+    val levelName: String,
+    val points: Int,
+    val levelProgress: Float,
+    val pointsToNext: Int?,
+    val nextLevelName: String?,
     val brightness: Float,
     val petals: Int,
     val particles: Int,
@@ -49,18 +53,49 @@ object StatsCalculator {
             .mapNotNull { it.planDay }
             .toSet()
 
-    fun spirit(stats: PracticeStats): SpiritState = SpiritState(
-        brightness = 0.3f + 0.7f * stats.daysThisWeek / 7f,
-        petals = (3 + stats.totalMinutes / 15).coerceAtMost(12),
-        particles = (8 + stats.totalSessions * 3).coerceAtMost(60),
-        growth = (stats.totalMinutes / 300f).coerceAtMost(1f),
-        title = when (stats.daysThisWeek) {
-            0 -> "Дух дремлет"
-            1, 2 -> "Дух просыпается"
-            3, 4, 5 -> "Дух светится"
-            else -> "Дух сияет"
-        }
+    val LEVELS = listOf(
+        0 to "Искра",
+        15 to "Огонёк",
+        35 to "Росток",
+        60 to "Бутон",
+        100 to "Цветок",
+        150 to "Сияние",
+        220 to "Звезда",
+        300 to "Созвездие",
+        400 to "Туманность",
+        520 to "Галактика"
     )
+
+    const val POINTS_PER_SESSION = 10
+
+    fun points(stats: PracticeStats): Int = stats.totalSessions * POINTS_PER_SESSION + stats.totalMinutes
+
+    fun pointsFor(durationSec: Int): Int = POINTS_PER_SESSION + durationSec / 60
+
+    fun spirit(stats: PracticeStats): SpiritState {
+        val points = points(stats)
+        val index = LEVELS.indexOfLast { points >= it.first }
+        val next = LEVELS.getOrNull(index + 1)
+        val progress = next?.let { (points - LEVELS[index].first).toFloat() / (it.first - LEVELS[index].first) } ?: 1f
+        return SpiritState(
+            level = index + 1,
+            levelName = LEVELS[index].second,
+            points = points,
+            levelProgress = progress,
+            pointsToNext = next?.let { it.first - points },
+            nextLevelName = next?.second,
+            brightness = 0.3f + 0.7f * stats.daysThisWeek / 7f,
+            petals = 3 + index,
+            particles = (6 + stats.totalSessions * 2).coerceAtMost(60),
+            growth = ((index + progress) / (LEVELS.size - 1)).coerceAtMost(1f),
+            title = when (stats.daysThisWeek) {
+                0 -> "Дух дремлет"
+                1, 2 -> "Дух просыпается"
+                3, 4, 5 -> "Дух светится"
+                else -> "Дух сияет"
+            }
+        )
+    }
 
     private fun dateOf(session: Session, zone: ZoneId): LocalDate =
         Instant.ofEpochMilli(session.startedAt).atZone(zone).toLocalDate()

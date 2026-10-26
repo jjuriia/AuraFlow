@@ -47,7 +47,6 @@ data class PracticeUiState(
     val moodBefore: Int = 3,
     val moodAfter: Int = 3,
     val attentionReturns: Int = 0,
-
     val bowlStrikes: Int = 0,
     val durationSec: Int = 0,
     val finalPattern: ChladniPattern? = null

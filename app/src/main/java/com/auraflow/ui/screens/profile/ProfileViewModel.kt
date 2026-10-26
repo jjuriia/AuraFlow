@@ -20,7 +20,6 @@ import java.time.ZoneId
 data class ProfileUiState(
     val name: String = "",
     val stats: PracticeStats = PracticeStats.EMPTY,
-
     val sessions: List<Session> = emptyList()
 )
 

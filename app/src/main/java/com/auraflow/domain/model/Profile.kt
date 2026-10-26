@@ -21,7 +21,6 @@ data class UserProfile(
     val name: String,
     val email: String,
     val answers: OnboardingAnswers,
-
     val planStartEpochDay: Long
 )
 

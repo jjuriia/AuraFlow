@@ -50,7 +50,7 @@ fun SpiritView(state: SpiritState, modifier: Modifier = Modifier) {
     Canvas(
         modifier = modifier
             .aspectRatio(1f)
-            .semantics { contentDescription = "${state.title}. Лепестков: ${state.petals}." }
+            .semantics { contentDescription = "${state.title}. Уровень ${state.level}: ${state.levelName}." }
             .pointerInput(Unit) {
                 detectTapGestures {
                     scope.launch {
@@ -62,7 +62,7 @@ fun SpiritView(state: SpiritState, modifier: Modifier = Modifier) {
     ) {
         val t = time.value
         val c = center
-        val r = size.minDimension * 0.15f
+        val r = size.minDimension * (0.11f + 0.04f * state.growth)
         val breath = 1f + 0.06f * sin(t * 0.9f) + 0.18f * pulse.value
         val glow = (state.brightness + 0.4f * pulse.value).coerceAtMost(1f)
 

@@ -39,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.auraflow.domain.plan.PlanDay
 import com.auraflow.domain.plan.PracticeStage
 import com.auraflow.domain.plan.StageSpec
+import com.auraflow.domain.stats.StatsCalculator
 import com.auraflow.ui.components.ChladniPlate
 import com.auraflow.ui.components.MOOD_LABELS
 import com.auraflow.ui.components.MoodSlider
@@ -255,6 +256,11 @@ private fun SummaryContent(state: PracticeUiState, viewModel: PracticeViewModel,
     ) {
         Text("Узор вашей сессии", style = MaterialTheme.typography.headlineMedium)
         Text("Сохранён в галерею личного кабинета", style = MaterialTheme.typography.bodyMedium, color = TextMuted)
+        Text(
+            "Дух-хранитель получил +${StatsCalculator.pointsFor(state.durationSec)} света",
+            style = MaterialTheme.typography.labelLarge,
+            color = NeonCyan
+        )
         Box(
             Modifier
                 .weight(1f)

@@ -13,7 +13,6 @@ data class StageSpec(val stage: PracticeStage, val seconds: Int)
 data class BreathPattern(val inhaleSec: Int, val exhaleSec: Int)
 
 data class PlanDay(
-
     val day: Int,
     val title: String,
     val description: String,

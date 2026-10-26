@@ -44,6 +44,7 @@ import com.auraflow.ui.theme.NeonCyan
 import com.auraflow.ui.theme.Night
 import com.auraflow.ui.theme.SurfaceGlass
 import com.auraflow.ui.theme.TextMuted
+import com.auraflow.ui.theme.TextPrimary
 
 object Routes {
     const val SPLASH = "splash"
@@ -76,6 +77,7 @@ fun AuraNavHost() {
     CosmicBackground {
         Scaffold(
             containerColor = Color.Transparent,
+            contentColor = TextPrimary,
             bottomBar = {
                 AnimatedVisibility(
                     visible = showTabs,

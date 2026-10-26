@@ -9,7 +9,6 @@ import kotlin.math.sin
 
 data class BowlTone(
     val fundamentalHz: Double,
-
     val decaySeconds: Double = 3.5
 ) {
     data class Partial(val ratio: Double, val gain: Double, val decayFactor: Double)

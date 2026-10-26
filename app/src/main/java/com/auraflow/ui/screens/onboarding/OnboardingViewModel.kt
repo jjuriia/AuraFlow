@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 data class OnboardingUiState(
-
     val rebuild: Boolean = false,
     val step: Int = 0,
     val goal: Goal? = null,

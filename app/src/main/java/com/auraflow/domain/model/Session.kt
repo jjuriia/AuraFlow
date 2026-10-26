@@ -8,14 +8,10 @@ data class ChladniPattern(
 
 data class Session(
     val id: Long = 0,
-
     val startedAt: Long,
     val durationSec: Int,
-
     val planDay: Int?,
-
     val attentionReturns: Int,
-
     val moodBefore: Int,
     val moodAfter: Int,
     val pattern: ChladniPattern

@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -33,6 +34,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.auraflow.domain.model.Quote
 import com.auraflow.domain.plan.PlanDay
 import com.auraflow.domain.plan.PlanGenerator
+import com.auraflow.domain.stats.SpiritState
+import com.auraflow.domain.stats.StatsCalculator
 import com.auraflow.ui.components.GlassCard
 import com.auraflow.ui.components.SpiritView
 import com.auraflow.ui.theme.NeonCyan
@@ -62,15 +65,7 @@ fun HomeScreen(
 
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             SpiritView(state.spirit, Modifier.fillMaxWidth(0.78f))
-            Text(state.spirit.title, style = MaterialTheme.typography.titleMedium, color = NeonCyan)
-            Text(
-                "Яркость — дни практики за неделю (${state.stats.daysThisWeek} из 7), " +
-                    "лепестки — общее время (${state.stats.totalMinutes} мин). Коснитесь духа.",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextMuted,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-            )
+            SpiritLevel(state.spirit, state.stats.daysThisWeek)
         }
 
         state.today?.let { day ->
@@ -82,6 +77,41 @@ fun HomeScreen(
         }
 
         state.quote?.let { QuoteCard(it) }
+    }
+}
+
+@Composable
+private fun SpiritLevel(spirit: SpiritState, daysThisWeek: Int) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text("Уровень ${spirit.level} · ${spirit.levelName}", style = MaterialTheme.typography.titleMedium, color = NeonCyan)
+        LinearProgressIndicator(
+            progress = { spirit.levelProgress },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(CircleShape),
+            color = NeonCyan,
+            trackColor = Outline,
+            drawStopIndicator = {}
+        )
+        Text(
+            spirit.pointsToNext?.let { "Ещё $it света до уровня «${spirit.nextLevelName}»" } ?: "Высший уровень достигнут",
+            style = MaterialTheme.typography.labelMedium,
+            color = TextMuted
+        )
+        Text(
+            "Каждая сессия даёт ${StatsCalculator.POINTS_PER_SESSION} света и ещё 1 за каждую минуту. " +
+                "${spirit.title}: яркость зависит от регулярности — $daysThisWeek из 7 дней. Коснитесь духа.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextMuted,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
