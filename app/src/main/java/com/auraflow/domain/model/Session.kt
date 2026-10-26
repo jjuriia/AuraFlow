@@ -19,5 +19,6 @@ data class Session(
     val moodBefore: Int,
     val moodAfter: Int,
     val pattern: ChladniPattern,
-    val completed: Boolean = true
+    val completed: Boolean = true,
+    val title: String? = null
 )

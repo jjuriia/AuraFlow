@@ -7,15 +7,17 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [SessionEntity::class, QuoteEntity::class],
-    version = 2,
+    entities = [SessionEntity::class, QuoteEntity::class, CustomPracticeEntity::class],
+    version = 3,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2)]
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)]
 )
 abstract class AuraDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
 
     abstract fun quoteDao(): QuoteDao
+
+    abstract fun customPracticeDao(): CustomPracticeDao
 
     companion object {
         fun create(context: Context): AuraDatabase =

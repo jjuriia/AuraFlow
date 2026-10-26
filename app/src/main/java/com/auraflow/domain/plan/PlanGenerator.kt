@@ -8,6 +8,7 @@ import com.auraflow.domain.plan.PracticeStage.ANCHOR
 import com.auraflow.domain.plan.PracticeStage.BODY_SCAN
 import com.auraflow.domain.plan.PracticeStage.BREATH
 import com.auraflow.domain.plan.PracticeStage.CLOSING
+import com.auraflow.domain.plan.PracticeStage.GROUNDING
 import com.auraflow.domain.plan.PracticeStage.SETTLE
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -49,6 +50,15 @@ object PlanGenerator {
         minutes = 2,
         stages = listOf(StageSpec(ANCHOR, 120)),
         breath = BreathPattern(4, 6)
+    )
+
+    fun sos(): PlanDay = PlanDay(
+        day = 0,
+        title = "Экстренная помощь",
+        description = "Дыхание с длинным выдохом и заземление через пять чувств.",
+        minutes = 3,
+        stages = listOf(StageSpec(BREATH, 75), StageSpec(GROUNDING, 75), StageSpec(CLOSING, 30)),
+        breath = BreathTechnique.CALM.pattern
     )
 
     fun today(completed: Set<Int>, doneToday: Int?): Int = doneToday ?: nextDay(completed)

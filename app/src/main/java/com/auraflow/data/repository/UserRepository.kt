@@ -1,6 +1,7 @@
 package com.auraflow.data.repository
 
 import com.auraflow.data.local.prefs.UserPreferences
+import com.auraflow.domain.audio.NatureSound
 import com.auraflow.domain.auth.PasswordHasher
 import com.auraflow.domain.model.AppSettings
 import com.auraflow.domain.model.OnboardingAnswers
@@ -45,6 +46,10 @@ class UserRepository(private val prefs: UserPreferences) {
         prefs.saveAnswers(answers, today.toEpochDay())
 
     suspend fun setTtsEnabled(enabled: Boolean) = prefs.setTtsEnabled(enabled)
+
+    val natureSound: Flow<NatureSound?> = prefs.natureSound
+
+    suspend fun setNatureSound(sound: NatureSound?) = prefs.setNatureSound(sound)
 
     suspend fun setReminder(enabled: Boolean, hour: Int, minute: Int) = prefs.setReminder(enabled, hour, minute)
 

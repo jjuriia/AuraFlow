@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.SelfImprovement
+import androidx.compose.material.icons.rounded.Spa
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -33,10 +34,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.auraflow.ui.components.CosmicBackground
+import com.auraflow.ui.screens.builder.BuilderScreen
 import com.auraflow.ui.screens.home.HomeScreen
 import com.auraflow.ui.screens.onboarding.LoginScreen
 import com.auraflow.ui.screens.onboarding.OnboardingScreen
+import com.auraflow.ui.screens.practice.PracticeKind
 import com.auraflow.ui.screens.practice.PracticeScreen
+import com.auraflow.ui.screens.practices.PracticesScreen
 import com.auraflow.ui.screens.profile.ProfileScreen
 import com.auraflow.ui.screens.settings.SettingsScreen
 import com.auraflow.ui.screens.splash.SplashScreen
@@ -51,18 +55,22 @@ object Routes {
     const val ONBOARDING = "onboarding?rebuild={rebuild}"
     const val LOGIN = "login"
     const val HOME = "home"
-    const val PRACTICE = "practice/{day}"
+    const val PRACTICE = "practice/{kind}/{id}"
+    const val PRACTICES = "practices"
+    const val BUILDER = "builder?id={id}"
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
 
     fun onboarding(rebuild: Boolean) = "onboarding?rebuild=$rebuild"
-    fun practice(day: Int) = "practice/$day"
+    fun practice(kind: PracticeKind, id: Long = 0) = "practice/${kind.name}/$id"
+    fun builder(id: Long = 0) = "builder?id=$id"
 }
 
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
 
 private val TABS = listOf(
     Tab(Routes.HOME, "Главная", Icons.Rounded.SelfImprovement),
+    Tab(Routes.PRACTICES, "Практики", Icons.Rounded.Spa),
     Tab(Routes.PROFILE, "Кабинет", Icons.Rounded.AutoAwesome),
     Tab(Routes.SETTINGS, "Настройки", Icons.Rounded.Tune)
 )
@@ -121,13 +129,32 @@ fun AuraNavHost() {
                     )
                 }
                 composable(Routes.HOME) {
-                    HomeScreen(onStartPractice = { day -> nav.navigate(Routes.practice(day)) })
+                    HomeScreen(onStartPractice = { kind, id -> nav.navigate(Routes.practice(kind, id)) })
                 }
                 composable(
                     Routes.PRACTICE,
-                    arguments = listOf(navArgument("day") { type = NavType.IntType })
+                    arguments = listOf(
+                        navArgument("kind") { type = NavType.StringType },
+                        navArgument("id") { type = NavType.LongType }
+                    )
                 ) {
                     PracticeScreen(onExit = { nav.popBackStack() })
+                }
+                composable(Routes.PRACTICES) {
+                    PracticesScreen(
+                        onStart = { kind, id -> nav.navigate(Routes.practice(kind, id)) },
+                        onCreate = { nav.navigate(Routes.builder()) },
+                        onEdit = { id -> nav.navigate(Routes.builder(id)) }
+                    )
+                }
+                composable(
+                    Routes.BUILDER,
+                    arguments = listOf(navArgument("id") {
+                        type = NavType.LongType
+                        defaultValue = 0L
+                    })
+                ) {
+                    BuilderScreen(onClose = { nav.popBackStack() })
                 }
                 composable(Routes.PROFILE) {
                     ProfileScreen()

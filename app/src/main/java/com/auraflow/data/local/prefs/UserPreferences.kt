@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.auraflow.domain.audio.NatureSound
 import com.auraflow.domain.model.AppSettings
 import com.auraflow.domain.model.DayPart
 import com.auraflow.domain.model.Experience
@@ -49,6 +50,12 @@ class UserPreferences(context: Context) {
             reminderHour = p[REMINDER_HOUR] ?: readAnswers(p)?.dayPart?.defaultHour ?: DayPart.EVENING.defaultHour,
             reminderMinute = p[REMINDER_MINUTE] ?: 0
         )
+    }
+
+    val natureSound: Flow<NatureSound?> = data.map { p -> NatureSound.entries.firstOrNull { it.name == p[NATURE_SOUND] } }
+
+    suspend fun setNatureSound(sound: NatureSound?) {
+        store.edit { it[NATURE_SOUND] = sound?.name.orEmpty() }
     }
 
     suspend fun credentials(): StoredCredentials? {
@@ -135,5 +142,6 @@ class UserPreferences(context: Context) {
         val REMINDER_HOUR = intPreferencesKey("reminder_hour")
         val REMINDER_MINUTE = intPreferencesKey("reminder_minute")
         val QUOTES_FROM_NETWORK = booleanPreferencesKey("quotes_from_network")
+        val NATURE_SOUND = stringPreferencesKey("nature_sound")
     }
 }

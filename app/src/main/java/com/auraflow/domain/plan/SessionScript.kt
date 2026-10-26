@@ -21,6 +21,21 @@ object SessionScript {
         "Мягко возвращайтесь к узору столько раз, сколько нужно."
     )
 
+    private val SILENCE = listOf(
+        "Побудьте в тишине. Ничего не нужно делать.",
+        "Если заметили, что думаете, — просто вернитесь к дыханию.",
+        "Позвольте звукам вокруг приходить и уходить."
+    )
+
+    private val GROUNDING = listOf(
+        "Оглянитесь и назовите про себя пять вещей, которые вы видите.",
+        "Четыре ощущения тела: опора, одежда, температура воздуха, ладони.",
+        "Три звука, которые слышны прямо сейчас.",
+        "Два запаха — или просто сделайте глубокий вдох.",
+        "Одно ощущение во рту: вкус, прохлада, тепло.",
+        "Вы здесь, в этом моменте. Волна тревоги проходит."
+    )
+
     private val BODY_SCAN = listOf(
         "Можно закрыть глаза. Перенесите внимание на стопы.",
         "Голени и колени. Просто отмечайте ощущения, ничего не меняя.",
@@ -44,7 +59,9 @@ object SessionScript {
             PracticeStage.SETTLE -> SETTLE
             PracticeStage.BREATH -> BREATH
             PracticeStage.ANCHOR -> ANCHOR
+            PracticeStage.SILENCE -> SILENCE
             PracticeStage.BODY_SCAN -> BODY_SCAN
+            PracticeStage.GROUNDING -> GROUNDING
             PracticeStage.CLOSING -> CLOSING
         }
         return phrases.mapIndexed { i, text -> Cue(spec.seconds * i / phrases.size, text) }

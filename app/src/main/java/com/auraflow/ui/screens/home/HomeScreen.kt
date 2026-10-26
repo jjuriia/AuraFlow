@@ -1,5 +1,6 @@
 package com.auraflow.ui.screens.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -38,14 +40,16 @@ import com.auraflow.domain.stats.SpiritState
 import com.auraflow.domain.stats.StatsCalculator
 import com.auraflow.ui.components.GlassCard
 import com.auraflow.ui.components.SpiritView
+import com.auraflow.ui.screens.practice.PracticeKind
 import com.auraflow.ui.theme.NeonCyan
+import com.auraflow.ui.theme.NeonRose
 import com.auraflow.ui.theme.NeonViolet
 import com.auraflow.ui.theme.Outline
 import com.auraflow.ui.theme.TextMuted
 
 @Composable
 fun HomeScreen(
-    onStartPractice: (day: Int) -> Unit,
+    onStartPractice: (kind: PracticeKind, id: Long) -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -69,11 +73,19 @@ fun HomeScreen(
         }
 
         state.today?.let { day ->
-            TodayCard(day, state.completedDays, state.planCompleted, state.todayDone, onStart = { onStartPractice(day.day) })
+            TodayCard(day, state.completedDays, state.planCompleted, state.todayDone, onStart = { onStartPractice(PracticeKind.PLAN, day.day.toLong()) })
         }
 
-        OutlinedButton(onClick = { onStartPractice(0) }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-            Text("Пауза · 2 минуты с пластиной")
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(
+                onClick = { onStartPractice(PracticeKind.SOS, 0) },
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonRose),
+                border = BorderStroke(1.dp, NeonRose),
+                modifier = Modifier.weight(1f).height(48.dp)
+            ) { Text("SOS · 3 мин") }
+            OutlinedButton(onClick = { onStartPractice(PracticeKind.PAUSE, 0) }, modifier = Modifier.weight(1f).height(48.dp)) {
+                Text("Пауза · 2 мин")
+            }
         }
 
         state.quote?.let { QuoteCard(it) }

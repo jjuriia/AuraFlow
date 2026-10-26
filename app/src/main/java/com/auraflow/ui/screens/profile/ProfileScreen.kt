@@ -188,7 +188,7 @@ private fun SessionDialog(session: Session, onDismiss: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 PatternThumbnail(session.pattern, Modifier.fillMaxWidth())
                 Text(
-                    if (session.planDay != null) "День плана ${session.planDay}" else "Пауза",
+                    session.title ?: if (session.planDay != null) "День плана ${session.planDay}" else "Пауза",
                     style = MaterialTheme.typography.labelLarge,
                     color = NeonCyan
                 )

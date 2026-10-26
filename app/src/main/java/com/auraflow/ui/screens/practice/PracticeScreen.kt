@@ -1,5 +1,7 @@
 package com.auraflow.ui.screens.practice
 
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -10,6 +12,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,9 +21,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.VolumeOff
+import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,17 +44,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.auraflow.domain.audio.NatureSound
+import com.auraflow.domain.plan.BreathPhase
+import com.auraflow.domain.plan.BreathTechnique
 import com.auraflow.domain.plan.PlanDay
 import com.auraflow.domain.plan.PracticeStage
 import com.auraflow.domain.plan.StageSpec
 import com.auraflow.domain.stats.StatsCalculator
 import com.auraflow.ui.components.ChladniPlate
+import com.auraflow.ui.components.GlassCard
 import com.auraflow.ui.components.MOOD_LABELS
 import com.auraflow.ui.components.MoodSlider
+import com.auraflow.ui.components.OptionChip
 import com.auraflow.ui.components.SingingBowlButton
 import com.auraflow.ui.components.formatDuration
 import com.auraflow.ui.theme.NeonCyan
@@ -67,7 +85,7 @@ fun PracticeScreen(
     ) { phase ->
         when (phase) {
             PracticePhase.MOOD_BEFORE -> MoodStep(
-                header = if (plan.day == 0) "Пауза · ${plan.minutes} мин" else "День ${plan.day} · ${plan.title} · ${plan.minutes} мин",
+                header = state.header,
                 title = "Как вы сейчас?",
                 subtitle = "Отметьте без оценки — так вы увидите, что меняет практика.",
                 value = state.moodBefore,
@@ -75,7 +93,9 @@ fun PracticeScreen(
                 confirmText = "Начать практику",
                 onConfirm = viewModel::start,
                 onBack = onExit
-            )
+            ) {
+                PracticeOptions(state, viewModel)
+            }
             PracticePhase.PRACTICE -> PracticeContent(state, plan, viewModel)
             PracticePhase.MOOD_AFTER -> MoodStep(
                 header = if (state.completed) "Сессия завершена · ${formatDuration(state.durationSec)}" else "Практика прервана · ${formatDuration(state.durationSec)}",
@@ -118,11 +138,13 @@ private fun MoodStep(
     onChange: (Int) -> Unit,
     confirmText: String,
     onConfirm: () -> Unit,
-    onBack: (() -> Unit)?
+    onBack: (() -> Unit)?,
+    options: @Composable () -> Unit = {}
 ) {
     Column(
         Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -132,7 +154,8 @@ private fun MoodStep(
         Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = TextMuted, textAlign = TextAlign.Center)
         Spacer(Modifier.height(16.dp))
         MoodSlider(value = value, onValueChange = onChange, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(24.dp))
+        options()
+        Spacer(Modifier.height(16.dp))
         Button(onClick = onConfirm, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(confirmText) }
         onBack?.let { TextButton(onClick = it) { Text("Назад") } }
     }
@@ -153,6 +176,15 @@ private fun PracticeContent(state: PracticeUiState, plan: PlanDay, viewModel: Pr
             Column(Modifier.weight(1f)) {
                 Text("Этап ${state.stageIndex + 1} из ${plan.stages.size}", style = MaterialTheme.typography.labelMedium, color = TextMuted)
                 Text(spec.stage.title, style = MaterialTheme.typography.titleLarge)
+            }
+            state.sound?.let { sound ->
+                IconButton(onClick = viewModel::toggleSound) {
+                    Icon(
+                        if (state.soundOn) Icons.Rounded.VolumeUp else Icons.Rounded.VolumeOff,
+                        contentDescription = if (state.soundOn) "Выключить звук «${sound.title}»" else "Включить звук «${sound.title}»",
+                        tint = if (state.soundOn) NeonCyan else TextMuted
+                    )
+                }
             }
             TextButton(onClick = viewModel::finishEarly) { Text("Завершить") }
         }
@@ -178,8 +210,8 @@ private fun PracticeContent(state: PracticeUiState, plan: PlanDay, viewModel: Pr
 
         Box(Modifier.height(40.dp), contentAlignment = Alignment.Center) {
             state.breath?.let { breath ->
-                AnimatedContent(targetState = breath.inhale, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "breath") { inhale ->
-                    Text(if (inhale) "Вдох…" else "Выдох…", style = MaterialTheme.typography.headlineMedium, color = NeonCyan)
+                AnimatedContent(targetState = breath.phase, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "breath") { phase ->
+                    Text(phase.title, style = MaterialTheme.typography.headlineMedium, color = NeonCyan)
                 }
             }
         }
@@ -218,7 +250,12 @@ private fun PracticeContent(state: PracticeUiState, plan: PlanDay, viewModel: Pr
 private fun breathGlow(breath: BreathUi?): Float {
     if (breath == null) return 0f
     val progress = ((System.nanoTime() - breath.startedAtNanos) / 1_000_000_000f / breath.phaseSeconds).coerceIn(0f, 1f)
-    return if (breath.inhale) progress else 1f - progress
+    return when (breath.phase) {
+        BreathPhase.INHALE -> progress
+        BreathPhase.HOLD_IN -> 1f
+        BreathPhase.EXHALE -> 1f - progress
+        BreathPhase.HOLD_OUT -> 0f
+    }
 }
 
 @Composable
@@ -288,7 +325,54 @@ private fun SummaryContent(state: PracticeUiState, viewModel: PracticeViewModel,
             SummaryValue("${state.attentionReturns}", "возвращений")
             SummaryValue("${MOOD_LABELS[state.moodBefore - 1]} → ${MOOD_LABELS[state.moodAfter - 1]}", "настроение")
         }
-        Button(onClick = onExit, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("На главную") }
+        if (state.kind == PracticeKind.SOS) HelpCard()
+        Button(onClick = onExit, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("Готово") }
+    }
+}
+
+@Composable
+private fun HelpCard() {
+    val context = LocalContext.current
+    GlassCard(Modifier.fillMaxWidth()) {
+        Text(
+            "Если тревога не отступает или есть угроза жизни — не оставайтесь с этим одни. " +
+                "Позвоните близкому человеку или в экстренную службу.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextMuted
+        )
+        OutlinedButton(
+            onClick = { context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:112"))) },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Позвонить 112") }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PracticeOptions(state: PracticeUiState, viewModel: PracticeViewModel) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (state.canChooseTechnique) {
+            Text("Техника дыхания", style = MaterialTheme.typography.labelLarge, color = TextMuted)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val planPattern = state.plan?.breath
+                if (state.kind == PracticeKind.PLAN && planPattern != null) {
+                    OptionChip("По плану ${planPattern.label}", state.technique == null) { viewModel.selectTechnique(null) }
+                }
+                for (technique in BreathTechnique.entries) {
+                    OptionChip("${technique.title} ${technique.pattern.label}", state.technique == technique) {
+                        viewModel.selectTechnique(technique)
+                    }
+                }
+            }
+            state.technique?.let { Text(it.description, style = MaterialTheme.typography.bodySmall, color = TextMuted) }
+        }
+        Text("Звуки природы", style = MaterialTheme.typography.labelLarge, color = TextMuted)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OptionChip("Без звука", state.sound == null) { viewModel.selectSound(null) }
+            for (sound in NatureSound.entries) {
+                OptionChip(sound.title, state.sound == sound) { viewModel.selectSound(sound) }
+            }
+        }
     }
 }
 
